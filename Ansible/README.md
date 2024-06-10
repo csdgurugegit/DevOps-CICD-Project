@@ -20,7 +20,7 @@ ssh-keygen -t ed25519 -C "ansible"
 Add the SSH public key to the Ubuntu nodes.
 
 ```
-ssh-copy-id -i ~/.ssh/ansible.pub root@192.168.8.171
+ssh-copy-id -i ~/.ssh/ansible.pub root@192.168.1.4
 ```
 
 Use this command to log in to Ubuntu node.
