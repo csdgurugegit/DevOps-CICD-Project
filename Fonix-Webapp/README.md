@@ -4,6 +4,6 @@ Sample Blog Front Page: A demonstration of HTML and CSS in action. Explore this 
 
 Front Page Screenshots
 
-![](https://github.com/csdgurugegit/projectimages/blob/main/Fonix-Frontpage-Sample.jpg)
+![](https://github.com/chathuracsd/Project-Images/blob/main/Fonix-Frontpage-Sample.jpg)
 
 
