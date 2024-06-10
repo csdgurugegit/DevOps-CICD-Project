@@ -1,0 +1,14 @@
+- hosts: Sonarqube_node
+  become: true
+  tasks:
+    - name: Install Docker
+      become: yes
+      command: sh /home/scripts/install-docker.sh
+
+    - name: Run Docker Compose
+      become: yes
+      command: docker-compose -f /home/scripts/docker-compose/sonarqube.yaml up -d
+
+  
+
+    

@@ -1,0 +1,22 @@
+- hosts: jenkins_node
+  become: true
+  tasks:
+    - name: Create /home/scripts directory
+      file:
+        path: /home/scripts
+        state: directory
+        mode: 0755
+        recurse: yes
+      become: yes
+      
+    - name: Copy Bash-Scripts to Jenkins /home/scripts directory
+      copy:
+        src: ./scripts/
+        dest: /home/scripts/
+      become: yes
+
+    - name: Set execute permission
+      become: yes
+      command: chmod -R +x /home/scripts/
+
+    

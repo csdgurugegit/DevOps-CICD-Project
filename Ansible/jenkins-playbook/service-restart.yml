@@ -1,0 +1,7 @@
+- hosts: jenkins_node
+  become: true
+  tasks:
+    - name: Service Enable-Start-Restart
+      become: yes
+      command: sh /home/scripts/service-restart.sh
+    

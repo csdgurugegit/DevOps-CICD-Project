@@ -1,0 +1,74 @@
+pipeline {
+    agent any
+    tools {
+        nodejs 'nodejs-install'
+    }
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+    }
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                echo "Checkout GitHub Repo Started"
+                git branch: 'main', url: 'https://github.com/csdgurugegit/Fonix-Web-Frontpage.git'
+                sh "ls -la"
+            }
+        }
+
+        stage('Scan Current Directory') {
+            steps {
+                echo "Trivy File Scanning Started"
+                sh "trivy fs --security-checks vuln,config --format table -o fsfonix-report.html ."
+                sh "ls -la"
+            }
+        }
+
+        stage('Sonarqube Scan') {
+            steps {
+                withSonarQubeEnv('sonar-server') {
+                    echo "Sonarqube Code Scanning Started"
+                    sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=WebApp -Dsonar.projectKey=WebApp"
+                }
+            }
+        }
+        
+        stage('Docker Image Build') {
+            steps {
+              script {
+                withDockerRegistry(credentialsId: 'dockerhub-cred', toolName: 'docker-install') {
+                    sh "docker build -t csdgurugedockerhub/fonix-webapp:1.3 ."
+                }   
+              }
+            }
+        }
+
+        stage('Trivy Docker Image Scan') {
+            steps {
+                echo "Trivy Docker Image Scanning Started"
+                sh "trivy image --scanners vuln --format table -o imagefonix-report.html csdgurugedockerhub/fonix-webapp:1.3"
+            }
+        }
+
+        stage('Push To DockerHub') {
+            steps {
+              script {
+                withDockerRegistry(credentialsId: 'dockerhub-cred', toolName: 'docker-install') {
+                    sh "docker push csdgurugedockerhub/fonix-webapp:1.3"
+                }   
+              }         
+            }
+        }
+
+        stage('Deploy Application In Dev Environment') {
+            steps {
+              script {
+                withDockerRegistry(credentialsId: 'dockerhub-cred', toolName: 'docker-install') {
+                    sh "docker run -d -p 6000:80 csdgurugedockerhub/fonix-webapp:1.3"
+                }   
+              }               
+            }
+        }
+
+    }
+}

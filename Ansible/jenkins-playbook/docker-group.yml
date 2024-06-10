@@ -1,0 +1,12 @@
+- hosts: jenkins_node
+  become: true
+  tasks:
+    - name: Create Docker Group
+      become: yes
+      command: sudo groupadd docker > /dev/null
+
+    - name: Add User Jenkins and Current User to Docker Group
+      become: yes
+      command: sudo usermod -aG docker jenkins $USER > /dev/null
+
+    

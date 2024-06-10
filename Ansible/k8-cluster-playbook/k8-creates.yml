@@ -1,0 +1,17 @@
+- hosts: k8_master_node
+  become: true
+  tasks:
+    - name: Creates Metrics to View Resource Usage
+      become: yes
+      command: kubectl apply -f /home/scripts/manifests/metrics-server.yaml
+
+    - name: Creates MetalLB ConfigMap
+      become: yes
+      command: kubectl apply -f /home/scripts/metalLB/metallb-configmap.yaml
+
+# All the configurations are located inside the /home/scripts/service-account directory
+
+    - name: Creates Service Account
+      become: yes
+      command: kubectl apply -f /home/scripts/service-account/service-account.yaml
+

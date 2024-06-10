@@ -1,0 +1,20 @@
+- hosts: jenkins_node
+  become: true
+  tasks:
+    - name: Install Jenkins and Java-Openjdk-18
+      become: yes
+      command: sh /home/scripts/install-jenkins.sh
+
+    - name: Install Docker
+      become: yes
+      command: sh /home/scripts/install-docker.sh
+
+    - name: Install Kubectl
+      become: yes
+      command: sh /home/scripts/install-kubectl.sh
+    
+    - name: Install Trivy
+      become: yes
+      command: sh /home/scripts/install-trivy.sh
+
+    

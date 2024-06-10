@@ -1,0 +1,91 @@
+pipeline {
+    agent any
+    tools {
+        nodejs 'nodejs-install'
+    }
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+    }
+    stages {
+        stage('Git Checkout') {
+            steps {
+                echo "Checkout GitHub Repo Started"
+                git branch: 'main', url: 'https://github.com/csdgurugegit/Fonix-Web-Frontpage.git'
+                sh "ls -la"
+            }
+        }
+
+        stage('Scan Current Directory') {
+            steps {
+                echo "Trivy File Scanning Started"
+                sh "trivy fs --security-checks vuln,config --format table -o fsfonix-report.html ."
+                sh "ls -la"
+            }
+        }
+
+        stage('Sonarqube Scan') {
+            steps {
+                withSonarQubeEnv('sonar-server') {
+                    echo "Sonarqube Code Scanning Started"
+                    sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=WebApps -Dsonar.projectKey=WebApps"
+                }
+            }
+        }
+        
+        stage('Docker Image Build') {
+            steps {
+              script {
+                withDockerRegistry(credentialsId: 'dockerhub-cred', toolName: 'docker-install') {
+                    sh "docker build --no-cache -t csdgurugedockerhub/fonix-webapp:2.2 ."
+                }   
+              }
+            }
+        }
+
+        stage('Trivy Docker Image Scan') {
+            steps {
+                echo "Trivy Docker Image Scanning Started"
+                sh "trivy image --scanners vuln --format table -o imagefonix-report.html csdgurugedockerhub/fonix-webapp:2.2"
+            }
+        }
+
+        stage('Push To DockerHub') {
+            steps {
+              script {
+                withDockerRegistry(credentialsId: 'dockerhub-cred', toolName: 'docker-install') {
+                    sh "docker push csdgurugedockerhub/fonix-webapp:2.2"
+                }   
+              }         
+            }
+        }
+        
+        stage('Deploy WebApp in Kubernetes') {
+            steps {
+                echo "K8 namespace 'webapps' Deployment and Service Started"
+                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'vmk8-cred', namespace: 'webapps', serverUrl: 'https://192.168.1.50:6443']]) {
+                    sh "kubectl apply -f ./k8/nginx-deployment.yaml"
+                    sh "kubectl apply -f ./k8/nginx-service.yaml"
+                }
+            }
+        }
+        
+        stage('Deploy Ingress-Controller in Kubernetes') {
+            steps {
+                echo "K8 namespace 'webapps' Ingress-Deployment Started"
+                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'vmk8-cred', namespace: 'webapps', serverUrl: 'https://192.168.1.50:6443']]) {
+                    sh "kubectl apply -f ./k8/nginx-ingress-service.yaml"
+                }
+            }
+        }
+        
+        stage('Verify All in Kubernetes') {
+            steps {
+                echo "K8 namespace 'webapps' Verification"
+                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'vmk8-cred', namespace: 'webapps', serverUrl: 'https://192.168.1.50:6443']]) {
+                    sh "kubectl get all -n webapps"
+                    sh "kubectl get ingresses -n webapps"
+                }
+            }
+        }
+    }
+}

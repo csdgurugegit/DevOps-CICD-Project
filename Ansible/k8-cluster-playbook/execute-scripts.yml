@@ -1,0 +1,21 @@
+- hosts: k8_master_node, k8_worker_node
+  become: true
+  tasks:
+    - name: Install Common Installations to Make K8-Cluster
+      become: yes
+      command: sh /home/scripts/kubeadm-common.sh
+
+- hosts: k8_master_node
+  become: true
+  tasks:
+    - name: Install K8-Master-Node Required Installations to Make K8-Cluster
+      become: yes
+      command: sh /home/scripts/kubeadm-master.sh
+
+    - name: Install Helm in K8-Master-Node 
+      become: yes
+      command: sh /home/scripts/install-helm.sh
+
+    - name: Install Ingress Using Helm
+      become: yes
+      command: sh /home/scripts/ingress-helm.sh

@@ -1,0 +1,14 @@
+[k8_master_node]
+192.168.1.4
+
+[k8_worker_node]
+192.168.1.5
+
+[jenkins_node]
+192.168.2.4
+
+[sonarqube_node]
+192.168.2.5
+
+[ansible_node]
+192.168.2.6
